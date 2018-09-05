@@ -7,7 +7,7 @@
 library(dplyr)
 
 input_path <- "data/survey.csv"
-output_path <- "data/cleaned_survey.csv"
+output_path <- "data/workshop_survey.csv"
       
 mental_df <- read.csv(input_path)
 
