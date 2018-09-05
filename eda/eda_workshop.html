@@ -149,7 +149,7 @@ RStudio is a free and open-source integrated development environment (IDE) for R
 <li>Click “Download ZIP”. (If you’re proficient with git, feel free to clone the repository.)</li>
 <li>Create a folder on your computer to store your work, and store your ZIP file there.</li>
 <li>Double-click your ZIP file to unzip it and get all the code.</li>
-<li>In RStudio, open <code>eda_workshop.Rmd</code>, a file in <code>YOUR_FOLDER/lumohacks-workshop/</code></li>
+<li>In RStudio, open <code>eda_workshop.Rmd</code>, a file in <code>YOUR_FOLDER/eda/</code></li>
 </ol>
 </div>
 <div id="installing-packages" class="section level2">
@@ -215,7 +215,7 @@ library(ggplot2)</code></pre>
 <p>The data that we will be using can be found here, <a href="https://www.kaggle.com/osmi/mental-health-in-tech-survey">Kaggle : mental health in tech survey</a></p>
 <p>Before we try to do anything fancy, we need to first understand what does the data <em>looks like</em>. Let’s look at the a first few rows of the data with <code>head()</code>.</p>
 <pre class="r"><code># load the data
-mental_data &lt;- read.csv('data/workshop_survey.csv')
+mental_data &lt;- read.csv('../data/workshop_survey.csv')
 
 # look at the first 6 lines of the data
 head(mental_data)</code></pre>
