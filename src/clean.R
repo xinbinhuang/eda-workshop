@@ -6,8 +6,8 @@
 # for the purpose of Lumohacks workshop
 library(dplyr)
 
-input_path <- "data/survey.csv"
-output_path <- "data/workshop_survey.csv"
+input_path <- "../data/survey.csv"
+output_path <- "../data/workshop_survey.csv"
       
 mental_df <- read.csv(input_path)
 
