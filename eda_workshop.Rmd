@@ -1,0 +1,514 @@
+---
+title: "Exploratory Data Analysis for Mental Illness"
+author: "Xinbin Huang"
+date: "September 2, 2018"
+output: 
+      html_document:
+            keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+```
+
+# Set up for this workshop 
+
+## Getting R and R studio
+
+> R is a programming language for statistical computing and data science.   
+> RStudio is a free and open-source integrated development environment (IDE) for R, which make your life easier.
+
+1. Download and install R from here: http://cran.stat.sfu.ca/.
+2. Download and install RStudio Desktop (Open Source Edition) from here: https://www.rstudio.com/products/rstudio/#Desktop.
+
+## Getting this document on your computer:
+
+1. Go to the GitHub repository here: https://github.com/xinbinhuang/lumohacks-workshop
+2. Click the green button on the right that says "Clone or download".
+3. Click "Download ZIP". (If you're proficient with git, feel free to clone the repository.)
+4. Create a folder on your computer to store your work, and store your ZIP file there.
+5. Double-click your ZIP file to unzip it and get all the code.
+6. In RStudio, open `eda_workshop.Rmd`, a file in `YOUR_FOLDER/lumohacks-workshop/`
+
+## Installing packages
+
+There are some packages required for this workshop. 
+- `dplyr`: for data wrangling
+- `ggplot2`: for data visualization
+
+You can install the packages using the code snippt below. (remove the hashtags first, and then to run the code by clicking the green "play" button, or with `Ctrl + Enter`)
+
+```{r}
+# install.packages("dplyr")
+# install.packages("ggplot2")
+```
+
+# What will we do today?
+- A quick intro to exploratory data analysis (EDA)
+- Learn how to look at the data
+- Learn data wrangling and visualization with `dplyr` and `ggplot2`
+
+## Some useful hacks
+
+To execute a line of code, move your cursor to that line and then type `Ctrl+Enter`. For example:
+
+```{r}
+# Move your cursor to the line below, and type Ctrl-Enter.
+print("Welcome to exploratory data analysis workshop!")
+```
+
+To assign values to variables, we use <- -- quickly get this with `Alt+-`
+
+```{r}
+x <- 4
+```
+
+Comment or uncomment the a line of code, move your cursor to that line and then type `Ctrl+Shift+C`. For example:
+
+```{r}
+# print("Please uncomment me with the magic trick!")
+```
+
+
+#. Finish setting up? Let's get started!
+## What is Exploratory Data Analysis (EDA), and why would you care?
+
+> In statistics, exploratory data analysis (EDA) is an approach to analyzing data sets to summarize their main characteristics, often with visual methods.                 --- Wikipedia
+               
+EDA serves many purposes, including 
+
+- better understanding the structure of the data (i.e. data types, summary statitics), and identifying relationships between variables. 
+- checking for problems with the data (i.e. missing data or measurement error) 
+- helping in forming hypothesis
+
+EDA is **important** because it provides analysts a better idea about what should they focus on, or just decide to stop if the data don't provide any information before they further putting resources into it.
+
+Today, we're going to work with *data frame*, a key data structure in statistics and in R with each observation per row and each variable per column. And, we are going to do a simple EDA with `dplyr` and `ggplot2`
+
+For `dplyr`, there are 5 main functions for data wrangling:
+
+- `select()`: get a subset of columns
+- `filter()`: get a subset of rows
+- `mutate()`: create a new column
+- `group_by()`: define groups according to the values in one or more columns
+- `summarise()`: reduce many rows down to a single value of interest.
+
+For `ggplot2`, we will go through:
+
+- set up a plot with `ggplot()`
+- Choose which variables to plot using argument `mapping = aes(x, y)` in `ggplot()`
+- Choose which type of plot using `geom_`
+- Add title and subtitle using `labels`
+
+Let's load the packages for this workshop.
+
+```{r}
+library(dplyr)
+library(ggplot2)
+```
+
+## Take a look at the data
+The data that we will be using can be found here, [Kaggle : mental health in tech survey](https://www.kaggle.com/osmi/mental-health-in-tech-survey)
+
+Before we try to do anything fancy, we need to first understand what does the data *looks like*. Let's look at the a first few rows of the data with `head()`.
+
+```{r}
+# load the data
+mental_data <- read.csv('data/cleaned_survey.csv')
+
+# look at the first 6 lines of the data
+head(mental_data)
+```
+
+We can also use the `str()` function to overview the data, which nicely present the number of rows and columsn, variable names, data types, and example values. 
+
+```{r}
+str(mental_data)
+```
+
+The `summary()` is also useful to calculate quick summary statistics of the data.
+```{r}
+# here only calculate the summary of the first 6 columns
+summary(mental_data[, 1:6])
+```
+
+You may also need to verify the data. For example, to check if there are missing values. Though we are not going to deal with missing values in this workshop, you should know that missing values would affect your analysis and may need to take care of them by removing or imputation (i.e. impute with mean).
+```{r}
+# calculate the number of NAs in each column
+check_na <- function(x) {
+      return(colSums(is.na(x)))
+}
+
+check_na(mental_data)
+```
+
+## Formulate a question
+One good practice for exploratory data analysis process is to formulate a question and let it guide you through the process. It helps reduce the number of all potentail paths down to a manageble number, which is extremely helpful for high-dimentional dataset.
+
+In particular, we would try to answer this question for this workshop:
+> Q: How did a person's age group, gender, and employee wellness program related to the likelihood of seeking treatment for mental health condition.
+
+To answer this question, we would need to have these columns:
+
+- `Age`: the person's age, in years
+- `Gender`: the person's gender
+- `wellness_program`: does the employee wellness program includes mental health
+- `treatment`: have a person sought treatment for a mental health condition
+
+## Subsetting columns with `select()`  
+
+`select()` takes a list of column names, and returns a dataframe but with only those columns. Let's see `select()` in action with a toy dataframe.
+
+```{r}
+toy_dataframe <- data.frame(
+      patient     = c("Alice",           "Bob",         "Cathy",              "Daisy"),
+      disease     = c("Mental disorder", "Depression",  "Mental disorder",    "Depression"),
+      disease_len = c(1.5,               1.5,           0.1,                  3),
+      age         = c(24,                22,            16,                   30)
+)
+
+# let's take a look
+toy_dataframe
+
+# let's select the 'disease' column
+select(.data = toy_dataframe, disease)
+```
+
+With the pipe operator : ` %>% `, this takes the output of the preceding line of code, and passes it in as the first argument of the next line. You can think of *pipe* as the word "then". So, the code below would be read as "start with `toy_dataframe`, then `select` disease.
+
+```{r}
+toy_dataframe %>% 
+      select(disease)
+```
+
+
+### Practice: subsetting the `Age` and `treatment` columns.
+
+Using our mental survey dataframe, select just the `Age` and `treatment` columns.
+
+```{r}
+mental_data %>% 
+      select(
+            # your answer here!
+      ) %>% 
+      head()
+```
+
+
+Great. Now let's grab the 4 variables of interest, and save them in a new dataframe.  
+(Though this step is not necessary, it will make it easier to analyze the variables that we care about. This is more useful when the total number of variables of the original dataframe is big!)
+
+```{r}
+mental_data_selected <- mental_data %>% 
+      select(Age, Gender, wellness_program, treatment)
+
+# let's take a look
+mental_data_selected %>% 
+      head()
+```
+
+## Subsetting rows with `filter()`
+
+It is common that your data may contains error entries or missing values, and you want to remove them. Or you may want to subset rows that satisfy some condictions.  
+
+We can use the `filter()` function from `dplyr` to do this - keeps only the rows in a dataframe that match a condition. For example:
+
+```{r}
+toy_dataframe
+
+# Use `==` for "equals"
+toy_dataframe %>% 
+  filter(patient == "Alice")
+
+# Greater than is `>`, lesser than is `<`.
+toy_dataframe %>% 
+      filter(age > 23)
+
+# Use `|` for "or".
+toy_dataframe %>% 
+  filter(patient == "Bob" | patient == "Cathy")
+
+# In `filter()`, each comma-separation is treated as "and". But you could also use `&`.
+toy_dataframe %>% 
+  filter(patient == "Bob" | patient == "Cathy",
+         disease == "Fever")
+
+# Use `!` for negation. This turns `TRUE` into `FALSE` and `FALSE into `TRUE`.
+toy_dataframe %>% 
+  filter(age != 22,
+         patient != "Cathy")
+```
+
+### Practice: find out `Age` that does not make sense.
+You may expect that the `Age` of people range 0 to 100, and those out of the range may be treated as outliers. Now we check if there are observations outside this range.s
+
+```{r, eval = FALSE}
+# filter rows where `age < 0`
+mental_data_selected %>% 
+      filter(
+            # answer here
+      )
+
+# filter rows where `age > 100`
+mental_data_selected %>% 
+      filter(
+            # answer here
+      )
+```
+
+In the code snippet below, I remove rows where `Age` is larger than 100 or smaller than 0. 
+```{r}
+mental_data_filtered <- mental_data_selected %>% 
+      filter(Age < 100, Age > 0)
+```
+
+Let's check the number of rows being removed, and it should be 5.
+```{r}
+paste("Number of rows removed:", 
+      nrow(mental_data_selected) - nrow(mental_data_filtered))
+```
+
+## Creating new columns with `mutate()`
+
+Next, we are going create a column that tells us what was the person's age group, "0-24", "25-34", and "35+". 
+
+We will use the `mutate()` function and the `Age` column to aggregate the results.
+
+Let's look at the following examples:
+
+```{r}
+toy_dataframe
+
+# We can fill our new column with whatever we like!
+toy_dataframe %>% 
+  mutate(new_column = "hello!")
+
+toy_dataframe %>% 
+  mutate(new_column = 2018)
+```
+
+Besides, we can even use the other columns to determine the contents of the new one. Let's compute when did the person first diagnosed with the disease.
+
+```{r}
+# nice! we get the `first_diagnosed` time 
+toy_dataframe %>% 
+      mutate(first_diagnosed = age - disease_len)
+```
+
+### Practice: calculate the max, min and average for the `Age`
+Use `mutate()` and `Age` to calculate the max, min, and mean called `max_age`, `min_age`, and `mean_age`.
+
+Hint: use functions `max()`, `min()`, and `mean()`. You can use `?max` to look up the documentation.
+
+```{r, eval=FALSE}
+mental_data_filtered %>% 
+      mutate(
+            # your answer here
+      ) %>% 
+      head()
+```
+
+To answer our question, we will need to use another function `case_when()`.
+
+`case_when()` takes a series of two-side formulas. The left-hand side of each formula is a condition, and the right-hand side is the desired output. For example:
+
+```{r}
+cool_values <- c(TRUE, FALSE, FALSE)
+
+cool_values
+
+case_when(
+  cool_values == TRUE ~ "hey there!",
+  cool_values == FALSE ~ "what's up?"
+)
+
+cool_numbers <- c(1,2,3,4,5,6,7,8,9,10)
+
+cool_numbers
+
+case_when(
+  cool_numbers < 5 ~ "small",
+  cool_numbers > 5 ~ "BIG!!!!",
+  TRUE ~ "default_value"
+)
+```
+Now, we are going to use `case_when()` within `mutate()` to create a new column that tells us whether the person's age was in the groups we're interested in:
+
+```{r}
+# Let's save the result in a new dataframe called `mental_data_mutated`.
+mental_data_mutated <- mental_data_filtered %>% 
+      mutate(
+            AgeGroup = case_when(
+            Age < 25             ~ "0-24",
+            Age >= 25 & Age < 35 ~ "25-34",
+            Age >= 35            ~ "35+"
+      )
+)
+
+# Let's take a look!
+mental_data_mutated %>% 
+      head()
+```
+
+## Computing aggregated summaries of subgroups with `group_by()` & `summarise()`
+
+Now we need to compute the proportion of people who seeked for treatment across different Gender.
+
+To do this, we can use two functions: 
+
+- `group_by()`: specifies which variable(s) you want to use to compute summaries within
+- `summarise()`: squishes the dataframe down to just one row per group, creating a column with whatever summary value you specify
+
+Let's look at some examples:
+
+```{r}
+toy_dataframe
+
+# you can use `summarise` alone to calculate the 
+# summary statistics of the whole data frame
+toy_dataframe %>% 
+      summarise(mean_age = mean(age))
+
+# also, you can use `group_by` and `summarise` 
+# to calculate the mean age for each diasese
+toy_dataframe %>% 
+      group_by(disease) %>% 
+      summarise(mean_age = mean(age))
+
+# or we can also get the max and min of the age
+toy_dataframe %>% 
+      group_by(disease) %>% 
+      summarise(
+            min_age = min(age),
+            max_age = max(age)
+            )
+```
+
+### Practice: calculate average age for different groups
+Now, let's calculate the average age for people who seeked for treatment and for those who did not.
+
+```{r, eval=FALSE}
+mental_data_mutated %>% 
+      group_by(
+            # your answer
+      ) %>% 
+      summarise(
+            # your answer
+      ) 
+```
+
+To compute the proportion of people who seeked for treatment across different Gender, we need to first encode the values of `treatment` from `Yes` and `No` to TRUE and FALSE. We can do this use `mutate()` with `case_when()`.
+
+```{r}
+mental_data_mutated <- mental_data_mutated %>% 
+      mutate(treatment = case_when(
+            treatment == "Yes" ~ TRUE,
+            treatment == "No" ~ FALSE
+      ))
+```
+
+Now we can compute the summary by grouping `Gender` and take the mean of `treatment` (i.e. in R, `TRUE == 1` and `FALSE == 0`)
+
+```{r}
+mental_data_summarised <- mental_data_mutated %>% 
+      group_by(Gender) %>% 
+      summarise(proportion_treatment = mean(treatment))
+
+mental_data_summarised
+```
+
+## Visualization with `ggplot2`
+
+The `ggplot2` package is the best way to create visualizations in R, based on *The Grammar of Graphics*. The code for each visualization comes in two main pieces:
+
+- Mapping of variables onto aesthetics (the visual properties of the graph). For example, we can map `treatment` to x-axis, and `Age` to y-axis.
+- Selection of a "geom" ("geometric object"): it determines if you want a scatter plot, a histogram or a line.
+
+### Set up a graph
+To start a visualization, we need to use `ggplot()`, which helps to set up a graph. However, this only initiate a blank space if we call it alone.
+
+We need to map different variables into different aesthestics, and most importantly the axis. To set up the axis, we use argument `mapping = aes(x, y)`. Here, let's put treatment in x-axis and Age in y-axis.
+
+```{r}
+mental_data_mutated %>% 
+      ggplot(mapping = aes(x = treatment, y = Age)) 
+```
+
+After setting up the axis, we need to decide the geometric object. In this case, we would use the box plot.
+
+```{r}
+mental_data_mutated %>% 
+      ggplot(mapping = aes(x = treatment, y = Age)) +
+      geom_boxplot()
+```
+
+To make the plot more descriptive, we will add a title and labels for x- and y- axis.
+
+```{r}
+mental_data_mutated %>% 
+      ggplot(mapping = aes(x = treatment, y = Age)) +
+      geom_boxplot() +
+      labs(title = "Box-plot of Age for different treatment groups",
+           # just for illustration 
+           # labels for x- and y- axis is not necessary in this case
+           x = "Treatment",  
+           y = "Age")
+```
+
+Wow! It looks like that younger people are less likely to have mental problems.
+
+Other than box plot, there are other `geom_` objects useful for EDA:
+ 
+- `geom_point()`: scatter plot; useful two quantitative variables
+- `geom_bar()` and `geom_col`: bar chart;  `geom_bar()` automatically counts the number of x as y values. In order to provide your own y values, we use `geom_col()`.
+- `geom_histogram()` and `geom_density()`: histogram and density plot; useful to visualize the distribution of continuous variables.
+
+Let's look at again the age distribution for different treatment, but this time with `geom_histogram`, and faceting the plot into two panels with `facet_wrap`.
+
+> Tips: To make the graph prettier, we can supply variable `AgeGroup` to the argument `fill`, which means to fill the bars with different colors.
+
+```{r}
+mental_data_mutated %>% 
+      ggplot(mapping = aes(x = Age, fill = treatment)) +
+      geom_histogram() +
+      facet_wrap(~ treatment) +
+      labs(title = "Histogram of Age for different treatment")
+```
+
+Now, let's try use the `geom_col()` to visualize the data for different Gender. 
+```{r}
+mental_data_summarised %>% 
+      ggplot(mapping = aes(x = Gender, y = proportion_treatment, fill = Gender)) +
+      geom_col() +
+      labs(title = "Proportion of people with mental condition for different Gender",
+           y = "Proportion of mental condition")
+```
+
+Interesting, female are much most likely to have mental problems, while male are least likely to have the problems.
+
+Though these claims may not be statistically significant, they lead you to check the realtionship in future analysis.
+
+### Chanllenge: visualize the relationship between `wellness_program` and `treatment`
+
+> Hint: you may need to `summarize` wellness_program similar to Gender. 
+
+```{r, eval = FALSE}
+mental_data_mutated %>% 
+      # some wrangling
+      
+      ggplot()
+```
+
+## Takeaways
+
+- Formulate your question to guide through the analysis process
+- Use `head()`, `str()`, `summary()` to get an idea about the data
+- Check missing values, and/or develop strategies to deal with them if necessary
+- Wrangle the data, and use visualization to identify relationship
+
+
+
+
+
+
+
