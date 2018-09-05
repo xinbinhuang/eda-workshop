@@ -122,7 +122,7 @@ Before we try to do anything fancy, we need to first understand what does the da
 
 ```r
 # load the data
-mental_data <- read.csv('data/cleaned_survey.csv')
+mental_data <- read.csv('data/workshop_survey.csv')
 
 # look at the first 6 lines of the data
 head(mental_data)
