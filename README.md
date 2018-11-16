@@ -1,7 +1,5 @@
 # **Exploratory Data Analysis(EDA)** using `dplyr` and `ggplot2`: Workshop Materials for [Lumohacks 2018.](http://www.lumohacks.com/)
 
-## Overview
-
 In statistics, exploratory data analysis (EDA) is an approach to analyzing data sets often with visual methods to summarize their main characteristics, check data quality, and help form hypothesis.  
 
 In this workshop, we will work through a EDA problem using data wrangling and visualization:
