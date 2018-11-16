@@ -31,6 +31,7 @@ By the end of this workshop, you will have a better understanding of the basic t
 
 ## Materials
 
+- [Markdown](./eda/eda_workshop.md)
 - [Rmarkdown](./eda/eda_workshop.Rmd)
 
 ## Environment Setup Instructions:
